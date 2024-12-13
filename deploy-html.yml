@@ -3,37 +3,36 @@
   hosts: localhost
   become: yes
   tasks:
-    # Install Docker
+    # Ensure Docker is installed
     - name: Install Docker
       apt:
         name: docker.io
         state: present
         update_cache: yes
 
-    # Ensure Docker service is running
+    # Start Docker service
     - name: Start Docker Service
       service:
         name: docker
         state: started
         enabled: yes
 
-    # Stop and remove any existing container with the same name
+    # Stop and remove any existing Docker container
     - name: Stop and Remove Existing Container
       shell: |
         docker stop html-container || true
         docker rm html-container || true
 
-    # Build the Docker image from the Dockerfile
+    # Build Docker image from the Dockerfile
     - name: Build Docker Image
       shell: docker build -t html-app .
 
-    # Run the Docker container using the built image
+    # Run Docker container
     - name: Run Docker Container
       shell: docker run -d --name html-container -p 80:80 html-app
 
-    # Ensure the container is running
-    - name: Verify Docker Container is Running
+    # Verify Docker container is running
+    - name: Verify Container Running
       shell: docker ps -q -f name=html-container
-      register: container_running
-      failed_when: container_running.stdout == ""
-      changed_when: false
+      register: container_status
+      failed_when: container_status.stdout == ""
