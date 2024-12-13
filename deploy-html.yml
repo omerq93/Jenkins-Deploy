@@ -1,14 +1,39 @@
 ---
 - name: Deploy HTML Code
   hosts: localhost
-  become: yes  # Enable privilege escalation
+  become: yes
   tasks:
+    # Install Docker
     - name: Install Docker
       apt:
         name: docker.io
         state: present
         update_cache: yes
-    - name: Build and Deploy Docker Container
+
+    # Ensure Docker service is running
+    - name: Start Docker Service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    # Stop and remove any existing container with the same name
+    - name: Stop and Remove Existing Container
       shell: |
-        docker build -t html-app .
-        docker run -d --name html-container -p 80:80 html-app
+        docker stop html-container || true
+        docker rm html-container || true
+
+    # Build the Docker image from the Dockerfile
+    - name: Build Docker Image
+      shell: docker build -t html-app .
+
+    # Run the Docker container using the built image
+    - name: Run Docker Container
+      shell: docker run -d --name html-container -p 80:80 html-app
+
+    # Ensure the container is running
+    - name: Verify Docker Container is Running
+      shell: docker ps -q -f name=html-container
+      register: container_running
+      failed_when: container_running.stdout == ""
+      changed_when: false
