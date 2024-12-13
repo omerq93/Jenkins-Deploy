@@ -1,0 +1,12 @@
+---
+- name: Deploy HTML Code
+  hosts: localhost
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+    - name: Build and Deploy Docker Container
+      shell: |
+        docker build -t html-app .
+        docker run -d --name html-container -p 80:80 html-app
